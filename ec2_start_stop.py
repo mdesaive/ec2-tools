@@ -62,13 +62,14 @@ def get_all_instance():
 def map_instance_ids_to_names(all_instances):
     """ Create simple dictionary mapping names to ids."""
     instance_name_mapping = []
-    for my_instance in all_instances:
-        record = {}
+    for my_instance_list in all_instances:
         # pprint.pprint(my_instance["Instances"][0]["State"]["Name"])
-        record["instance_id"] = my_instance["Instances"][0]["InstanceId"]
-        record["instance_name"] = list(filter(lambda x: x["Key"] == "Name", my_instance["Instances"][0]["Tags"]))[0]["Value"]
-        record["state"] = my_instance["Instances"][0]["State"]["Name"]
-        instance_name_mapping.append(record)
+        for my_instance in my_instance_list["Instances"]:
+            record = {}
+            record["instance_id"] = my_instance["InstanceId"]
+            record["instance_name"] = list(filter(lambda x: x["Key"] == "Name", my_instance["Tags"]))[0]["Value"]
+            record["state"] = my_instance["State"]["Name"]
+            instance_name_mapping.append(record)
     return instance_name_mapping
 
 
@@ -96,9 +97,8 @@ def main():
     if not args.start and not args.stop:
         sys.exit("Do either give \"--start\" or \"--stop\" parameter!")
     all_instances = get_all_instance()
+    # pprint.pprint(all_instances)
     instance_name_mapping = map_instance_ids_to_names(all_instances)
-
-    # pprint.pprint(instance_name_mapping)
 
     instance_name_list = args.instances.split(',')
 

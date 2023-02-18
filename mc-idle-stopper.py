@@ -47,7 +47,7 @@ def prepare_arguments():
         dest='dry_run',
         help='Do dry run do not really stop.',
         action='store_true',
-        required=True)
+        required=False)
     args = parser.parse_args()
 
     return args

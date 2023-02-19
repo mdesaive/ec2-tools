@@ -11,6 +11,7 @@ import argparse
 import textwrap
 import re
 import boto3
+import ovh
 from aws_keys import AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 
@@ -41,6 +42,21 @@ def prepare_arguments():
         '-t','--timeout',
         dest='timeout',
         help='Stop when no user was logged in after this timeout.',
+        required=True)
+    parser.add_argument(
+        '--ovh-id',
+        dest='ovh_record_id',
+        help='OVH record id.',
+        required=True)
+    parser.add_argument(
+        '--dns-target',
+        dest='dns_target',
+        help='OVH DNS target',
+        required=True)
+    parser.add_argument(
+        '--dns-subdomain',
+        dest='dns_subdomain',
+        help='OVH DNS subdomain',
         required=True)
     parser.add_argument(
         '-d', '--dry-run',
@@ -175,13 +191,26 @@ def main():
     subprocess.check_output(cmd, shell=True)
 
     if idle_minutes > timeout:
-        instance_id =  list(filter(lambda x: x["instance_name"] == instance_name, instance_name_mapping))[0]["instance_id"]
-        print(f'Stopping instance {instance_id} / {instance_name}.')
-        cmd = f'su -c "screen -d -R minecraft -X stuff \\"say Stopping server {instance_id} / {instance_name}.\r\\"" minecraft'
+        instance =  list(filter(lambda x: x["instance_name"] == instance_name, instance_name_mapping))[0]
+        # pprint.pprint(instance)
+        print(f'Stopping instance {instance["instance_id"]} / {instance["instance_name"]}.')
+        cmd = f'su -c "screen -d -R minecraft -X stuff \\"say Stopping server {instance["instance_id"]} / {instance["instance_name"]}.\r\\"" minecraft'
         # print(f'{cmd}\n')
         subprocess.check_output(cmd, shell=True)
+        client = ovh.Client()
+        target = args.dns_target
+        subdomain = args.dns_subdomain
+        ovh_record_id = args.ovh_record_id
+        print(f'Setting OVH record {ovh_record_id} to subdomain {subdomain} with target {target}')
 
         if not args.dry_run:
+            client.put(
+                f'/domain/zone/desaive.de/record/{ ovh_record_id }',
+                subDomain=subdomain,
+                target=target,
+                ttl=60)
+            client.post('/domain/zone/desaive.de/refresh')
+
             stop_instances([instance_id, ])
 
 

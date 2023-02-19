@@ -5,6 +5,7 @@
 import sys
 import os
 import subprocess
+import time
 import datetime
 import pprint
 import argparse
@@ -117,7 +118,7 @@ def main():
 
     # pprint.pprint(instance_name)
     if instance_name not in [ x["instance_name"] for x in instance_name_mapping ]:
-       pprint.pprint(instance_name_mapping)
+       # pprint.pprint(instance_name_mapping)
        sys.exit(f'Instance with name=\"{instance_name}\" not available.')
 
     # pprint.pprint(instance_name)
@@ -161,12 +162,12 @@ def main():
                        sys.exit(f'Grep error, returncode = {grepexc.returncode}, error = {grepexc.output}')
 
                 start_server_list = start_server_log.splitlines()
-                pprint.pprint(start_server_list)
+                # pprint.pprint(start_server_list)
                 last_start_server = start_server_list[len(start_server_list) - 1]
                 result = re.search("\[([\d\:]*)\].*$", last_start_server.decode("utf-8"))
 
                 timestamp = result.group(1)
-                print(timestamp)
+                # print(timestamp)
             else:
                 sys.exit(f'Grep error, returncode = {grepexc.returncode}, error = {grepexc.output}')
         else:
@@ -177,7 +178,7 @@ def main():
     
             timestamp = result.group(1)
             
-            print(timestamp)
+            # print(timestamp)
 
     time_datetime = datetime.datetime.strptime(timestamp,'%H:%M:%S')
     idle = datetime.datetime.now() - time_datetime
@@ -202,6 +203,19 @@ def main():
         ovh_record_id = args.ovh_record_id
         print(f'Setting OVH record {ovh_record_id} to subdomain {subdomain} with target {target}')
 
+    #     cmd = f'su -c "screen -d -R minecraft -X stuff \\"save-all\r\\"" minecraft'
+    #     # print(f'{cmd}\n')
+    #     subprocess.check_output(cmd, shell=True)
+
+    #     cmd = f'su -c "screen -d -R minecraft -X stuff \\"stop\r\\"" minecraft'
+    #     # print(f'{cmd}\n')
+    #     subprocess.check_output(cmd, shell=True)
+
+    #     time.sleep(15)
+
+        cmd = 'systemctl stop minecraft.service'       
+        subprocess.check_output(cmd, shell=True)
+
         if not args.dry_run:
             client.put(
                 f'/domain/zone/desaive.de/record/{ ovh_record_id }',
@@ -209,8 +223,7 @@ def main():
                 target=target,
                 ttl=60)
             client.post('/domain/zone/desaive.de/refresh')
-
-            stop_instances([instance_id, ])
+            stop_instances([instance["instance_id"], ])
 
 
 

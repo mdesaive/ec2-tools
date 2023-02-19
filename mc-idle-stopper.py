@@ -197,6 +197,11 @@ def main():
         cmd = f'su -c "screen -d -R minecraft -X stuff \\"say Stopping server {instance["instance_id"]} / {instance["instance_name"]}.\r\\"" minecraft'
         # print(f'{cmd}\n')
         subprocess.check_output(cmd, shell=True)
+
+        print('Stopping Minecraft service.')
+        cmd = 'systemctl stop minecraft.service'       
+        subprocess.check_output(cmd, shell=True)
+
         client = ovh.Client()
         target = args.dns_target
         subdomain = args.dns_subdomain
@@ -213,8 +218,6 @@ def main():
 
     #     time.sleep(15)
 
-        cmd = 'systemctl stop minecraft.service'       
-        subprocess.check_output(cmd, shell=True)
 
         if not args.dry_run:
             client.put(

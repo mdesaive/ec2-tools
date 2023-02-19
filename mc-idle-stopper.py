@@ -153,7 +153,6 @@ def main():
                 print('No logouts at all, checking start time of server')
                 try:
                     cmd = 'grep "\[Server thread/INFO\]: Preparing level" /opt/paper/run/logs/latest.log'
-                    print(cmd)
                     start_server_log = subprocess.check_output(cmd, shell=True)
                 except subprocess.CalledProcessError as grepexc:                                                                                                   
                    if grepexc.returncode == 1:

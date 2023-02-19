@@ -186,7 +186,7 @@ def main():
     idle_minutes = round( idle.seconds / 60 )
 
     print(f'Server is idle for {idle_minutes} minutes.')
-    cmd = f'su -c "screen -d -R minecraft -X stuff \\"say No users online for {idle_minutes} minutes.\r\\"" minecraft'
+    cmd = f'su -c "screen -d -R minecraft -X stuff \\"say No users online for {idle_minutes} minutes shutting down after {timeout} minutes idle time.\r\\"" minecraft'
     # print(f'{cmd}\n')
     subprocess.check_output(cmd, shell=True)
 

@@ -198,10 +198,6 @@ def main():
         # print(f'{cmd}\n')
         subprocess.check_output(cmd, shell=True)
 
-        print('Stopping Minecraft service.')
-        cmd = 'systemctl stop minecraft.service'       
-        subprocess.check_output(cmd, shell=True)
-
         client = ovh.Client()
         target = args.dns_target
         subdomain = args.dns_subdomain
@@ -220,12 +216,17 @@ def main():
 
 
         if not args.dry_run:
+            print('Stopping Minecraft service.')
+            cmd = 'systemctl stop minecraft.service'       
+            subprocess.check_output(cmd, shell=True)
+
             client.put(
                 f'/domain/zone/desaive.de/record/{ ovh_record_id }',
                 subDomain=subdomain,
                 target=target,
                 ttl=60)
             client.post('/domain/zone/desaive.de/refresh')
+
             stop_instances([instance["instance_id"], ])
 
 

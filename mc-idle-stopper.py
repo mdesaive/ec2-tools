@@ -9,6 +9,7 @@ import time
 import datetime
 import pprint
 import argparse
+from pathlib import Path
 import textwrap
 import re
 import boto3
@@ -185,12 +186,18 @@ def main():
 
     idle_minutes = round( idle.seconds / 60 )
 
-    print(f'Server is idle for {idle_minutes} minutes.')
+    print(f'Server is idle for {idle_minutes} minutes. Shutting down after idle time of {timeout} minutes.')
     cmd = f'su -c "screen -d -R minecraft -X stuff \\"say No users online for {idle_minutes} minutes shutting down after {timeout} minutes idle time.\r\\"" minecraft'
     # print(f'{cmd}\n')
     subprocess.check_output(cmd, shell=True)
 
-    if idle_minutes > timeout:
+    disable_file = Path("/root/scr/.disable-mc-idle-stopper")
+    
+    if disable_file.is_file():
+        cmd = f'su -c "screen -d -R minecraft -X stuff \\"say Autostop disabled by file {disable_file}.\r\\"" minecraft'
+        subprocess.check_output(cmd, shell=True)
+
+    if idle_minutes > timeout and not args.dry_run and not disable_file.is_file():
         instance =  list(filter(lambda x: x["instance_name"] == instance_name, instance_name_mapping))[0]
         # pprint.pprint(instance)
         print(f'Stopping instance {instance["instance_id"]} / {instance["instance_name"]}.')
@@ -204,30 +211,18 @@ def main():
         ovh_record_id = args.ovh_record_id
         print(f'Setting OVH record {ovh_record_id} to subdomain {subdomain} with target {target}')
 
-    #     cmd = f'su -c "screen -d -R minecraft -X stuff \\"save-all\r\\"" minecraft'
-    #     # print(f'{cmd}\n')
-    #     subprocess.check_output(cmd, shell=True)
+        print('Stopping Minecraft service.')
+        cmd = 'systemctl stop minecraft.service'       
+        subprocess.check_output(cmd, shell=True)
 
-    #     cmd = f'su -c "screen -d -R minecraft -X stuff \\"stop\r\\"" minecraft'
-    #     # print(f'{cmd}\n')
-    #     subprocess.check_output(cmd, shell=True)
+        client.put(
+            f'/domain/zone/desaive.de/record/{ ovh_record_id }',
+            subDomain=subdomain,
+            target=target,
+            ttl=60)
+        client.post('/domain/zone/desaive.de/refresh')
 
-    #     time.sleep(15)
-
-
-        if not args.dry_run:
-            print('Stopping Minecraft service.')
-            cmd = 'systemctl stop minecraft.service'       
-            subprocess.check_output(cmd, shell=True)
-
-            client.put(
-                f'/domain/zone/desaive.de/record/{ ovh_record_id }',
-                subDomain=subdomain,
-                target=target,
-                ttl=60)
-            client.post('/domain/zone/desaive.de/refresh')
-
-            stop_instances([instance["instance_id"], ])
+        stop_instances([instance["instance_id"], ])
 
 
 

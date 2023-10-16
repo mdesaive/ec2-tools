@@ -128,7 +128,8 @@ def main():
     cmd = 'su -c "screen -d -R minecraft -X stuff \\"list \r\\"" minecraft'
     # print(f'{cmd}\n')
     list_players = subprocess.check_output(cmd, shell=True)
-    
+    time.sleep(3)
+
     try:
         cmd = 'grep "\[Server thread/INFO\]: There are .* of .* players online" /opt/paper/run/logs/latest.log'
         num_players = subprocess.check_output(cmd, shell=True)

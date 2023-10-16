@@ -222,7 +222,7 @@ def main():
                 target=target,
                 ttl=60)
             client.post('/domain/zone/desaive.de/refresh')
-        except:
+        finally:
             stop_instances([instance["instance_id"], ])
 
 
